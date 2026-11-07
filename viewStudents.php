@@ -67,13 +67,13 @@
         foreach ($row1 as $key => $enrollment) {
             $stmt2 = $conn->prepare('SELECT major from students where id=?')
             $stmt2->bind_param('s', $enrollment[student]);
-            stmt2->execute();
+            $stmt2->execute();
             $result2 = $stmt2->get_result();
             $row2 = [$stmt2->fetch_assoc()];
 
-            stmt3 = $conn->prepare('SELECT department from majors where id=?');
+            $stmt3 = $conn->prepare('SELECT department from majors where id=?');
             $stmt3->bind_param('s', $row2[major]);
-            stmt3->execute();
+            $stmt3->execute();
             $result3 = $stmt3->get_result();
             $row3 = [$stmt3->fetch_assoc()];
 
@@ -91,6 +91,29 @@
             echo("$enrollment[name], $enrollment[grade]");
         }
     }
+
+    byInstructor($id) {
+        $stmt = $conn->prepare('SELECT * FROM teachers WHERE id=?')
+        $stmt->bind_param('s', $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+
+        $stmt1 = $conn->prepare('SELECT id FROM classes WHERE teacher = ?');
+        $stmt1->bind_param('s', $id);
+        $stmt1->execute();
+        $result1 = $stmt1->get_result();
+        $row1 = $result1->fetch_assoc();
+
+        print("Name: $row['name'] \n
+            Department: $row['department']");
+        
+        foreach ($row1 as $course) { #lists each course the instructor teaches
+            byCourse($course);
+        }
+    }
+
+    
 
 
 
