@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+  <h1>Advisor Actions</h1>
+  <form action="main.php" method="POST">
+    <label>Actions:
+      <select name="action" id="action" required>
+        <option value="create">View Students</option>
+        <option value="read">Average Grade</option>
+        <option value="update">Academic Standing</option>
+        <option value="delete">Major Completion</option>
+      </select>
+    </label>
+    <br><br>
+
+    <label>Student ID: <input type="number" name="studentID" id="studentID"></label><br><br>
+    <label>Class ID: <input type="number" name="classID" id="classID"></label><br><br>
+    <label>Major ID: <input type="number" name="majorID" id="majorID"></label><br><br>
+    <label>Teacher ID: <input type="number" name="teacherID" id="teacherID"></label><br><br>
+    <label>Department ID: <input type="number" name="departmentID" id="departmentID"></label><br><br>
+
+
+    <button type="submit">Send</button>
+  </form>
+</body>
+</html>
