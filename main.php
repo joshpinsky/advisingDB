@@ -36,6 +36,13 @@
             if ($stmt = $conn->prepare('SELECT AVG(grade) FROM enrollments WHERE student = ?')) {
                 $stmt->bind_param('?', $_POST['id']);
             } else { $conn->close(); exit('Error Occurred!'); }
+        } elseif ($queryType === 'Course') {
+            if ($stmt = $conn->prepare('SELECT AVG(grade) FROM enrollments WHERE class = ?')) {
+                $stmt->bind_param('?', $_POST['id']);
+            } else { $conn->close(); exit('Error Occurred!'); }
+        } elseif ($queryType === 'Instructor') {
+        } elseif ($queryType === 'Department') {
+        } elseif ($queryType === 'Major') {
         } else {
             if ($stmt = $conn->prepare('SELECT AVG(grade) FROM enrollments')) {
             } else { $conn->close(); exit('Error Occurred!'); }
