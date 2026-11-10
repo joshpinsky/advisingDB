@@ -29,7 +29,6 @@
 
 
     // TODO
-    // Average Grade (class, major, department, student)
     // Completion % (class, major, department, student?)
     
     // Average Grade
@@ -96,6 +95,7 @@
             $query = 'SELECT AVG(grade) FROM enrollments WHERE ';
             $query = variableOrQuery($query, 'student', $result, $conn);
             
+            //Step 3: Execute generated query and print results
             $result = executeQuery($query, $conn);
             if ($row = $result->fetch_assoc()) {
                 echo 'Average of all grades for students with major ID ' . $_POST['id'] . ': ' . $row['AVG(grade)'];
