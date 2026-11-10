@@ -31,10 +31,11 @@
     // TODO
     // Average Grade (class, major, department, student)
     // Completion % (class, major, department, student?)
-
+    
     // Average Grade
     if ($action === 'Average Grade') {
-        if (!$_POST['id']) exit('Error: empty field!');
+        if (!$_POST['id'])
+            exit('Error: empty field!');
         // Search by Student, Course, Instructor, Department, or Major
         if ($queryType === 'Student') {
             $result = createQuery('SELECT AVG(grade) FROM enrollments WHERE student = ?', $_POST['id'], $conn);
@@ -51,7 +52,7 @@
                 echo 'No Record Found!';
             }
         } elseif ($queryType === 'Instructor') {
-            $total = 0;
+            /*$total = 0;
             $number = 0;
             if ($stmt = $conn->prepare('SELECT id FROM classes WHERE teacher = ?')) {
                 $stmt->bind_param('i', $_POST['id']);
@@ -73,7 +74,21 @@
             }
             echo $total;
             $stmt->close();
-            $conn->close();
+            $conn->close();*/
+            $total = 0;
+            $addends = 0;
+            //Step 1: Select all classes with the given instructor
+            $result = createQuery('SELECT id FROM classes WHERE teacher = ?', $_POST['id'], $conn);
+            $rows = $result->fetch_all(MYSQLI_ASSOC);
+            foreach ($rows as $row) {
+                $result2 = createQuery('SELECT grade FROM enrollments WHERE class = ?', $row['id'], $conn);
+                if ($row = $result2->fetch_assoc()) {
+                    $total += $row['grade'];
+                    $addends += 1;
+                }
+            }
+            echo 'Average grade for courses instructed by ID ' . $_POST['id'] . ': ' . $total / $addends;
+
         } elseif ($queryType === 'Department') {
             //TODO
         } elseif ($queryType === 'Major') {
@@ -95,20 +110,21 @@
     }
 
     //Functions
-
+    
     //Submits the given query to the database
-    function createQuery($query, $value, $conn) {
+    function createQuery($query, $value, $conn)
+    {
         if ($stmt = $conn->prepare($query)) {
-                $stmt->bind_param('i', $value);
-            } else {
-                $conn->close();
-                exit('Error Occurred!');
-            }
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $stmt->close();
+            $stmt->bind_param('i', $value);
+        } else {
             $conn->close();
-            return $result;
+            exit('Error Occurred!');
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stmt->close();
+        $conn->close();
+        return $result;
     }
 
     ?>
