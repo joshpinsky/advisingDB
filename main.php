@@ -89,7 +89,19 @@
             }
 
         } elseif ($queryType === 'Major') {
-            //TODO
+            //Step 1: Select all students with a given major
+            $result = createQuery('SELECT id FROM students WHERE major = ?', $_POST['id'], $conn);
+
+            //Step 2: Create query searching enrollments for all students found above
+            $query = 'SELECT AVG(grade) FROM enrollments WHERE ';
+            $query = variableOrQuery($query, 'student', $result, $conn);
+            
+            $result = executeQuery($query, $conn);
+            if ($row = $result->fetch_assoc()) {
+                echo 'Average of all grades for students with major ID ' . $_POST['id'] . ': ' . $row['AVG(grade)'];
+            } else {
+                echo 'No Record Found!';
+            }
         } else {
             if ($stmt = $conn->prepare('SELECT AVG(grade) FROM enrollments')) {
             } else {
