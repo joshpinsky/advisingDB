@@ -27,45 +27,29 @@
     $queryType = trim($_POST['queryType']);
     $id = trim($_POST['id']);
 
+
     // TODO
     // Average Grade (class, major, department, student)
     // Completion % (class, major, department, student?)
 
     // Average Grade
     if ($action === 'Average Grade') {
+        if (!$_POST['id']) exit('Error: empty field!');
         // Search by Student, Course, Instructor, Department, or Major
         if ($queryType === 'Student') {
-            if ($stmt = $conn->prepare('SELECT AVG(grade) FROM enrollments WHERE student = ?')) {
-                $stmt->bind_param('i', $_POST['id']);
-            } else {
-                $conn->close();
-                exit('Error Occurred!');
-            }
-            $stmt->execute();
-            $result = $stmt->get_result();
+            $result = createQuery('SELECT AVG(grade) FROM enrollments WHERE student = ?', $_POST['id'], $conn);
             if ($row = $result->fetch_assoc()) {
-                echo $row['AVG(grade)'];
+                echo 'Average grade for student ID ' . $_POST['id'] . ': ' . $row['AVG(grade)'];
             } else {
                 echo 'No Record Found!';
             }
-            $stmt->close();
-            $conn->close();
         } elseif ($queryType === 'Course') {
-            if ($stmt = $conn->prepare('SELECT AVG(grade) FROM enrollments WHERE class = ?')) {
-                $stmt->bind_param('i', $_POST['id']);
-            } else {
-                $conn->close();
-                exit('Error Occurred!');
-            }
-            $stmt->execute();
-            $result = $stmt->get_result();
+            $result = createQuery('SELECT AVG(grade) FROM enrollments WHERE class = ?', $_POST['id'], $conn);
             if ($row = $result->fetch_assoc()) {
-                echo $row['AVG(grade)'];
+                echo 'Average grade for course ID ' . $_POST['id'] . ': ' . $row['AVG(grade)'];
             } else {
                 echo 'No Record Found!';
             }
-            $stmt->close();
-            $conn->close();
         } elseif ($queryType === 'Instructor') {
             $total = 0;
             $number = 0;
@@ -108,6 +92,23 @@
 
     // Completion %
     if ($action === 'completionPercentage') {
+    }
+
+    //Functions
+
+    //Submits the given query to the database
+    function createQuery($query, $value, $conn) {
+        if ($stmt = $conn->prepare($query)) {
+                $stmt->bind_param('i', $value);
+            } else {
+                $conn->close();
+                exit('Error Occurred!');
+            }
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $stmt->close();
+            $conn->close();
+            return $result;
     }
 
     ?>
