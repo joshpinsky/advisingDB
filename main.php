@@ -57,14 +57,7 @@
 
             //Step 2: Create query searching enrollements for each valid id
             $query = 'SELECT AVG(grade) FROM enrollments WHERE ';
-            $total = 0;
-            while ($row = $result->fetch_assoc()) {
-                if ($total > 0) {
-                    $query = $query . 'OR ';
-                }
-                $query = $query . 'class = ' . $row['id'] . ' ';
-                $total++;
-            }
+            $query = variableOrQuery($query, 'class', $result, $conn);
 
             //Step 3: Execute generated query and print results
             $result = executeQuery($query, $conn);
@@ -75,7 +68,26 @@
             }
 
         } elseif ($queryType === 'Department') {
-            //TODO
+            //Step 1: Select all instructors in a given department
+            $result = createQuery('SELECT id FROM teachers WHERE department = ?', $_POST['id'], $conn);
+
+            //Step 2: Create query searching instructors for all classes they teach
+            $query = 'SELECT id FROM classes WHERE ';
+            $query = variableOrQuery($query, 'teacher', $result, $conn);
+            $result = executeQuery($query, $conn);
+
+            //Step 4: Create query searching enrollments for each valid id
+            $query = 'SELECT AVG(grade) FROM enrollments WHERE ';
+            $query = variableOrQuery($query, 'class', $result, $conn);
+
+            //Step 5: Execute generated query and print results
+            $result = executeQuery($query, $conn);
+            if ($row = $result->fetch_assoc()) {
+                echo 'Average grade for courses in department ID ' . $_POST['id'] . ': ' . $row['AVG(grade)'];
+            } else {
+                echo 'No Record Found!';
+            }
+
         } elseif ($queryType === 'Major') {
             //TODO
         } else {
@@ -94,7 +106,7 @@
 
     //Functions
     
-    //Submits the given query to the database
+    //Submits the given query to the database, binding the parameters
     function createQuery($query, $value, $conn)
     {
         if ($stmt = $conn->prepare($query)) {
@@ -109,7 +121,7 @@
         //$conn->close();
         return $result;
     }
-
+    //Submits the given query with no extra paremeters
     function executeQuery($query, $conn)
     {
         if ($stmt = $conn->prepare($query)) {
@@ -122,6 +134,20 @@
         $stmt->close();
         //$conn->close();
         return $result;
+    }
+
+    //Appends a variable number of conditions to a WHERE clause in the given query
+    function variableOrQuery($query, $column, $result, $conn)
+    {
+        $total = 0;
+        while ($row = $result->fetch_assoc()) {
+            if ($total > 0) {
+                $query = $query . 'OR ';
+            }
+            $query = $query . $column . ' = ' . $row['id'] . ' ';
+            $total++;
+        }
+        return $query;
     }
 
     ?>
