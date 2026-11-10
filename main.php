@@ -52,42 +52,27 @@
                 echo 'No Record Found!';
             }
         } elseif ($queryType === 'Instructor') {
-            /*$total = 0;
-            $number = 0;
-            if ($stmt = $conn->prepare('SELECT id FROM classes WHERE teacher = ?')) {
-                $stmt->bind_param('i', $_POST['id']);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                $rows = $result->fetch_all(MYSQLI_ASSOC);
-                foreach ($rows as $row) {
-                    if ($stmt = $conn->prepare('SELECT AVG(grade) FROM enrollments WHERE class = ?')) {
-                        $stmt->bind_param('i', $row['id']);
-                    }
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                    if ($row = $result->fetch_assoc()) {
-                        $total += $row['AVG(grade)'];
-                        $number += 1;
-                    }
-                }
-                if ($number > 0) $total = $total / $number;
-            }
-            echo $total;
-            $stmt->close();
-            $conn->close();*/
-            $total = 0;
-            $addends = 0;
             //Step 1: Select all classes with the given instructor
             $result = createQuery('SELECT id FROM classes WHERE teacher = ?', $_POST['id'], $conn);
-            $rows = $result->fetch_all(MYSQLI_ASSOC);
-            foreach ($rows as $row) {
-                $result2 = createQuery('SELECT grade FROM enrollments WHERE class = ?', $row['id'], $conn);
-                if ($row = $result2->fetch_assoc()) {
-                    $total += $row['grade'];
-                    $addends += 1;
+
+            //Step 2: Create query searching enrollements for each valid id
+            $query = 'SELECT AVG(grade) FROM enrollments WHERE ';
+            $total = 0;
+            while ($row = $result->fetch_assoc()) {
+                if ($total > 0) {
+                    $query = $query . 'OR ';
                 }
+                $query = $query . 'class = ' . $row['id'] . ' ';
+                $total++;
             }
-            echo 'Average grade for courses instructed by ID ' . $_POST['id'] . ': ' . $total / $addends;
+
+            //Step 3: Execute generated query and print results
+            $result = executeQuery($query, $conn);
+            if ($row = $result->fetch_assoc()) {
+                echo 'Average grade for courses instructed by ID ' . $_POST['id'] . ': ' . $row['AVG(grade)'];
+            } else {
+                echo 'No Record Found!';
+            }
 
         } elseif ($queryType === 'Department') {
             //TODO
@@ -100,8 +85,6 @@
                 exit('Error Occurred!');
             }
         }
-
-
         exit();
     }
 
@@ -123,7 +106,21 @@
         $stmt->execute();
         $result = $stmt->get_result();
         $stmt->close();
-        $conn->close();
+        //$conn->close();
+        return $result;
+    }
+
+    function executeQuery($query, $conn)
+    {
+        if ($stmt = $conn->prepare($query)) {
+        } else {
+            $conn->close();
+            exit('Error Occurred!');
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stmt->close();
+        //$conn->close();
         return $result;
     }
 
