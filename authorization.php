@@ -37,10 +37,10 @@
         $stmt->execute();
         $result = $stmt->get_result();
         if ($row = $result->fetch_assoc()) {
-            if (password_verify($_POST['password'], $row['password'])) {
+            if (strcmp($_POST['password'], $row['password']) == 0) {
                 echo ("User successfully authorized<br>");
                 $_SESSION['userID'] = $row['id'];
-                echo ("<a href='login.html'>Go to main page</a>");
+                echo ("<a href='index.html'>Go to main page</a>");
             } else {
                 echo ("Invalid username or password");
             }
