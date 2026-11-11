@@ -17,7 +17,7 @@
 
     $conn = new mysqli($DATABASE_HOST, $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME);
 
-    byStudent($id) {
+    function viewByStudent($id) {
         $stmt = $conn->prepare('SELECT major, name FROM students WHERE id = ?')
         $stmt->bind_param('s', $id);
         $stmt->execute();
@@ -51,7 +51,7 @@
         }
     }
 
-    byCourse($id) {
+    function viewByCourse($id) {
         $stmt = $conn->prepare('SELECT * FROM classes WHERE id = ?');
         $stmt->bind_param('s', $id);
         $stmt->execute();
@@ -92,7 +92,7 @@
         }
     }
 
-    byInstructor($id) {
+    function viewByInstructor($id) {
         $stmt = $conn->prepare('SELECT * FROM teachers WHERE id=?')
         $stmt->bind_param('s', $id);
         $stmt->execute();

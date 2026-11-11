@@ -15,6 +15,8 @@
     $DATABASE_PASS = '';
     $DATABASE_NAME = 'advisingdb';
 
+    require_once __DIR__ . '/viewStudents.php'; #should allow use of functions from other files
+    require_once __DIR__ . '/academicStanding.php'; 
 
     $conn = new mysqli($DATABASE_HOST, $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME);
     if ($conn->connect_error) {
@@ -31,6 +33,17 @@
     // TODO
     // Completion % (class, major, department, student?)
     
+    //View Students
+    if ($action === 'View Students') {
+        if ($queryType === 'Student')
+            viewByStudent($id);
+        if ($queryType === 'Course')
+            viewByCourse($id);
+        if ($queryType === 'Instructor')
+            viewByInstructor($id);
+    }
+
+
     // Average Grade
     if ($action === 'Average Grade') {
         if (!$_POST['id'])
