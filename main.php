@@ -16,7 +16,7 @@
     $DATABASE_NAME = 'advisingdb';
 
     require_once __DIR__ . '/viewStudents.php'; #should allow use of functions from other files
-    require_once __DIR__ . '/academicStanding.php'; 
+    require_once __DIR__ . '/academicStanding.php';
 
     $conn = new mysqli($DATABASE_HOST, $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME);
     if ($conn->connect_error) {
@@ -107,7 +107,7 @@
             //Step 2: Create query searching enrollments for all students found above
             $query = 'SELECT AVG(grade) FROM enrollments WHERE ';
             $query = variableOrQuery($query, 'student', $result, $conn);
-            
+
             //Step 3: Execute generated query and print results
             $result = executeQuery($query, $conn);
             if ($row = $result->fetch_assoc()) {
@@ -126,7 +126,46 @@
     }
 
     // Completion %
-    if ($action === 'completionPercentage') {
+    if ($action === 'Major Completion') {
+
+        if ($queryType === 'Student') {
+            //Step 1: Find student's major
+            $result = createQuery('SELECT major FROM students WHERE id = ?', $id, $conn);
+
+            //Step 2: Find all classes the major requires
+            $row = $result->fetch_assoc();
+            $result = createQuery('SELECT class FROM requirements WHERE major = ?', $row['major'], $conn);
+
+            //Step 3: Count number of required courses
+            $totalCourses = 0;
+            $completedCourses = 0;
+            while ($row = $result->fetch_assoc()) {
+
+                if ($stmt = $conn->prepare('SELECT grade FROM enrollments WHERE class = ? AND student = ?')) {
+                    $stmt->bind_param('ii', $row['class'], $id);
+                } else {
+                    $conn->close();
+                    exit('Error Occurred!');
+                }
+                $stmt->execute();
+                $result2 = $stmt->get_result();
+                $stmt->close();
+
+                if ($row2 = $result2->fetch_assoc()) {
+                    if ($row2['grade'] >= 70) {
+                        $completedCourses++;
+                    }
+                }
+                $totalCourses++;
+            }
+
+            //Step 4: Print results
+            printf("Major completion percentage for student ID %d: %d%%", $id, 100 * ($completedCourses / $totalCourses));
+
+        } else {
+            exit('Invalid query type.');
+        }
+
     }
 
     //Functions
