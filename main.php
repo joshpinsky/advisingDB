@@ -41,6 +41,17 @@
             viewByCourse($id);
         if ($queryType === 'Instructor')
             viewByInstructor($id);
+        else {
+            echo("Invalid Action! Please enter a student, course, or instructor ID")
+        }
+    }
+
+    if ($action === 'Academic Standing') {
+        if ($queryType === 'Student')
+            academicStanding($id);
+        else {
+            echo("Invalid Action! Please enter a student ID")
+        }
     }
 
 
@@ -163,7 +174,7 @@
             printf("Major completion percentage for student ID %d: %d%%", $id, 100 * ($completedCourses / $totalCourses));
 
         } else {
-            exit('Invalid query type.');
+            exit('Invalid query type. Please enter a student ID');
         }
 
     }
