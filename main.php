@@ -23,11 +23,28 @@
         exit('Error Connecting to the DATABASE form' . $conn->connect_error);
     }
 
-
+    //Get current session access level
+    if ($stmt = $conn->prepare('SELECT username, accessLevel FROM advisors WHERE id = ?')) {
+        $stmt->bind_param('i', $_SESSION['userID']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $_SESSION['accessLevel'] = $row['accessLevel'];
+            $_SESSION['username'] = $row['username'];
+        } else {
+            echo 'Current session has no associated access level!';
+            $stmt->close();
+            $conn->close();
+        }
+        $stmt->close();
+    }
 
     $action = trim($_POST['action']);
     $queryType = trim($_POST['queryType']);
     $id = trim($_POST['id']);
+
+    global $accessLevel;
+    $accessLevel = $_SESSION['accessLevel'];
 
 
     // TODO
@@ -37,12 +54,12 @@
     if ($action === 'View Students') {
         if ($queryType === 'Student')
             viewByStudent($id);
-        if ($queryType === 'Course')
+        elseif ($queryType === 'Course')
             viewByCourse($id);
-        if ($queryType === 'Instructor')
+        elseif ($queryType === 'Instructor')
             viewByInstructor($id);
         else {
-            echo("Invalid Action! Please enter a student, course, or instructor ID")
+            echo ("Invalid Action! Please enter a student, course, or instructor ID");
         }
     }
 
@@ -50,7 +67,7 @@
         if ($queryType === 'Student')
             academicStanding($id);
         else {
-            echo("Invalid Action! Please enter a student ID")
+            echo ("Invalid Action! Please enter a student ID");
         }
     }
 

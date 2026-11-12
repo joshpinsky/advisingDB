@@ -12,6 +12,7 @@
         echo("Starting! <br>");
         global $accessLevel;
         global $conn;
+        $accessLevel = $_SESSION['accessLevel'];
         $stmt = $conn->prepare('SELECT majors.name AS major, students.name AS student FROM students JOIN majors ON students.major = majors.id WHERE students.id = ?'); #pulls student major
         if (!$stmt) {
             die("Prepare failed: " . $conn->error);
@@ -41,7 +42,7 @@
         $row1 = $result1->fetch_all(MYSQLI_ASSOC);
         
 
-        if ($accessLevel === 0) { #masks grade info from lower level advisors
+        if ($accessLevel == 0) { #masks grade info from lower level advisors
             foreach ($row1 as $key => $class) {
                 $class['grade'] = '*****';
                 $row1[$key] = $class;
