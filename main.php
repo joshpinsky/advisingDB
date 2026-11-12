@@ -24,13 +24,14 @@
     }
 
     //Get current session access level
-    if ($stmt = $conn->prepare('SELECT username, accessLevel FROM advisors WHERE id = ?')) {
+    if ($stmt = $conn->prepare('SELECT username, accessLevel, department FROM advisors WHERE id = ?')) {
         $stmt->bind_param('i', $_SESSION['userID']);
         $stmt->execute();
         $result = $stmt->get_result();
         if ($row = $result->fetch_assoc()) {
             $_SESSION['accessLevel'] = $row['accessLevel'];
             $_SESSION['username'] = $row['username'];
+            $_SESSION['department'] = $row['department'];
         } else {
             echo 'Current session has no associated access level!';
             $stmt->close();
@@ -44,7 +45,9 @@
     $id = trim($_POST['id']);
 
     global $accessLevel;
+    global $department;
     $accessLevel = $_SESSION['accessLevel'];
+    $department = $_SESSION['department'];
 
 
     // TODO

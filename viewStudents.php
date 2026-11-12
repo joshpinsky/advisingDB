@@ -12,7 +12,8 @@
         echo("Starting! <br>");
         global $accessLevel;
         global $conn;
-        $accessLevel = $_SESSION['accessLevel'];
+        global $department;
+        
         $stmt = $conn->prepare('SELECT majors.name AS major, students.name AS student FROM students JOIN majors ON students.major = majors.id WHERE students.id = ?'); #pulls student major
         if (!$stmt) {
             die("Prepare failed: " . $conn->error);
@@ -29,7 +30,7 @@
             return;
         }
 
-        $stmt1 = $conn->prepare('SELECT classes.name AS name, enrollments.grade as grade FROM enrollments JOIN classes ON enrollments.class = classes.id WHERE enrollments.student = ?'); #pulls all of the students classes
+        $stmt1 = $conn->prepare('SELECT classes.id AS class, classes.name AS name, enrollments.grade as grade FROM enrollments JOIN classes ON enrollments.class = classes.id WHERE enrollments.student = ?'); #pulls all of the students classes
         if (!$stmt1) {
             die("Prepare failed: " . $conn->error);
         }
@@ -48,6 +49,18 @@
                 $row1[$key] = $class;
             }
         }
+        
+
+        if ($accessLevel == 1) { #hides grades in classes not in advisors department
+            foreach ($row1 as $key => $class) {
+                $result2 = createQuery('SELECT teachers.department AS department FROM classes JOIN teachers ON classes.teacher = teachers.id WHERE classes.id = ?', $row1[$key]['class'], $conn);
+                $row2 = $result2->fetch_assoc();
+                if ($row2['department'] != $department) {
+                    $class['grade'] = '*****';
+                    $row1[$key] = $class;
+                }
+            }
+        }
 
         echo("Name: {$row['student']} <br>" .
             "Major: {$row['major']} <br>" .
@@ -59,6 +72,7 @@
 
     function viewByCourse(String $id) {
         global $accessLevel;
+        global $department
         global $conn;
         $stmt = $conn->prepare('SELECT classes.teacher AS teacher, teachers.name AS name, teachers.department AS department, departments.name AS departmentName FROM classes JOIN teachers ON classes.teacher = teachers.id JOIN departments ON teachers.department = departments.id WHERE classes.id = ?');
         if (!$stmt) {
@@ -89,7 +103,7 @@
             $result2 = $stmt2->get_result();
             $row2 = $result2->fetch_assoc();
 
-            if ($row2['department'] != 'ADVISOR DEPARTMENT' || $accessLevel < 'FIGURE OUT LATER') { #applies context to by course queries
+            if ($row2['department'] != $department || $accessLevel === 0) { #applies context to by course queries
                 $enrollment['grade'] = '*****'; #advisor from one department should not be able to view grades of a student not in his department
                 $row1[$key] = $enrollment;
             }
