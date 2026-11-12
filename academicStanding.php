@@ -7,27 +7,27 @@
 </head>
 <body>
     <?php 
-    include main.php;
-    session_start();
-    $DATABASE_HOST = 'localhost';
-    $DATABASE_USER = 'root';
-    $DATABASE_PASS = '';
-    $DATABASE_NAME = 'advisingDB';
 
     require_once __DIR__ . '/main.php'; 
 
-
-    $conn = new mysqli($DATABASE_HOST, $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME);
-
-    function academicStanding($id) {
-        $result = executeQuery(createQuery('SELECT enrollments.grade as grade, students.name as name FROM enrollments JOIN students on enrollments.student = students.id WHERE enrollments.student=?', $id, $conn), $conn);
+    function academicStanding(String $id) {
+        global $accessLevel;
+        global $conn;
+        
+        echo("starting");
+        $result = createQuery('SELECT enrollments.grade as grade, students.name as name FROM enrollments JOIN students on enrollments.student = students.id WHERE enrollments.student=?', $id, $conn);
+        echo("Found student grades <br>");
         $row = $result->fetch_all(MYSQLI_ASSOC);
+        if (empty($row)) {
+            echo "No student records found.";
+            return;
+        }
         $semGPA = 0;
         $semClasses = 0;
         $totalGPA = 0;
         $totalClasses = 0;
         foreach ($row as $grade) {
-            $g = $grade['grade']
+            $g = $grade['grade'];
             $semClasses += 1;
             if ($g >= 90)
                 $semGPA += 4;
@@ -38,10 +38,12 @@
             elseif ($g >= 60)
                 $semGPA += 1;
         }
-        $semGPA = $semGPA / $semClasses;
-        $result1 = executeQuery(createQuery('SELECT grade FROM credits WHERE student=?', $id, $conn), $conn);
+        if ($semClasses > 0)
+            $semGPA = $semGPA / $semClasses;
+        $result1 = createQuery('SELECT grade FROM credits WHERE student=?', $id, $conn);
+        $row1 = $result1->fetch_all(MYSQLI_ASSOC);
         foreach ($row1 as $grade) {
-            $g = $grade['grade']
+            $g = $grade['grade'];
             $totalClasses += 1;
             if ($g >= 90)
                 $totalGPA += 4;
@@ -52,30 +54,36 @@
             elseif ($g >= 60)
                 $totalGPA += 1;
         }
-        $totalGPA = $totalGPA / $totalClasses;
+        if ($totalClasses > 0)
+            $totalGPA = $totalGPA / $totalClasses;
 
 
         
         
         
-        $result1 = executeQuery(createQuery('SELECT classes.name AS name, enrollments.grade as grade FROM enrollments JOIN classes ON enrollments.class = classes.id WHERE enrollments.student = ?', $id, $conn), $conn)
+        $result1 = createQuery('SELECT classes.name AS name, enrollments.grade as grade FROM enrollments JOIN classes ON enrollments.class = classes.id WHERE enrollments.student = ?', $id, $conn);
         $row2 = $result1->fetch_all(MYSQLI_ASSOC); #reused list of classes code here
         echo("Found student classes <br>");
         
 
-        if ($accessLevel == 'FIGURE OUT LATER') { #masks grade info from lower level advisors
+        if ($accessLevel == 0) { #masks grade info from lower level advisors
             foreach ($row2 as $key => $class) {
                 $class['grade'] = '*****';
-                $row1[$key] = $class;
+                $row2[$key] = $class;
             }
         }
 
-        echo("Name: {$row['name']} <br>")
+        echo("Name: {$row[0]['name']} <br>");
 
         echo("Semester GPA: $semGPA <br>
             Total GPA: $totalGPA <br>"); 
+        
+        if ($totalGPA < 2.0)
+            echo("Student is on academic probation <br>");
+        else
+            echo("Student is in good academic standing <br>");
 
-        foreach ($row1 as $class) {
+        foreach ($row2 as $class) {
             echo("{$class['name']}, {$class['grade']} <br>");
         }
         
