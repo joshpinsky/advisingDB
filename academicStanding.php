@@ -16,7 +16,6 @@
         
         echo("starting");
         $result = createQuery('SELECT enrollments.grade as grade, students.name as name FROM enrollments JOIN students on enrollments.student = students.id WHERE enrollments.student=?', $id, $conn);
-        echo("Found student grades <br>");
         $row = $result->fetch_all(MYSQLI_ASSOC);
         if (empty($row)) {
             echo "No student records found.";

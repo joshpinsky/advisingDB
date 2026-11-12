@@ -27,7 +27,6 @@
             echo("No Record Found! <br>");
             return;
         }
-        echo("Found student name and major <br>");
 
         $stmt1 = $conn->prepare('SELECT classes.name AS name, enrollments.grade as grade FROM enrollments JOIN classes ON enrollments.class = classes.id WHERE enrollments.student = ?'); #pulls all of the students classes
         if (!$stmt1) {
@@ -40,10 +39,9 @@
         }
         $result1 = $stmt1->get_result();
         $row1 = $result1->fetch_all(MYSQLI_ASSOC);
-        echo("Found student classes <br>");
         
 
-        if ($accessLevel == 'FIGURE OUT LATER') { #masks grade info from lower level advisors
+        if ($accessLevel === 0) { #masks grade info from lower level advisors
             foreach ($row1 as $key => $class) {
                 $class['grade'] = '*****';
                 $row1[$key] = $class;
@@ -127,12 +125,6 @@
             viewByCourse($course);
         }
     }
-
-    
-
-
-
-
     ?>
 </body>
 </html>
