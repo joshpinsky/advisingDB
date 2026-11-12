@@ -7,41 +7,40 @@
 </head>
 <body>
     <?php 
-    session_start();
 
     function viewByStudent(String $id) {
-        echo('Starting!');
+        echo("Starting! <br>");
         global $accessLevel;
         global $conn;
         $stmt = $conn->prepare('SELECT majors.name AS major, students.name AS student FROM students JOIN majors ON students.major = majors.id WHERE students.id = ?'); #pulls student major
-        $stmt->bind_param('s', $id);
-        $stmt->execute();
         if (!$stmt) {
             die("Prepare failed: " . $conn->error);
         }
+        $stmt->bind_param('s', $id);
+        
         if (!$stmt->execute()) {
             die("Execute failed: " . $conn->error);
         }
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
         if (!$row) {
-            echo('No Record Found!');
+            echo("No Record Found! <br>");
             return;
         }
-        echo('Found student name and major');
+        echo("Found student name and major <br>");
 
         $stmt1 = $conn->prepare('SELECT classes.name AS name, enrollments.grade as grade FROM enrollments JOIN classes ON enrollments.class = classes.id WHERE enrollments.student = ?'); #pulls all of the students classes
-        $stmt1->bind_param('s', $id);
-        $stmt1->execute();
         if (!$stmt1) {
             die("Prepare failed: " . $conn->error);
         }
+        $stmt1->bind_param('s', $id);
+        
         if (!$stmt1->execute()) {
             die("Execute failed: " . $conn->error);
         }
         $result1 = $stmt1->get_result();
         $row1 = $result1->fetch_all(MYSQLI_ASSOC);
-        echo('Found student classes');
+        echo("Found student classes <br>");
         
 
         if ($accessLevel == 'FIGURE OUT LATER') { #masks grade info from lower level advisors
@@ -51,54 +50,58 @@
             }
         }
 
-        echo("Name: {$row['student']} \n" .
-            "Major: {$row['major']} \n" .
+        echo("Name: {$row['student']} <br>" .
+            "Major: {$row['major']} <br>" .
             "Classes: ");
         foreach ($row1 as $class) {
-            echo("{$class['name']}, {$class['grade']}");
+            echo("{$class['name']}, {$class['grade']} <br>");
         }
     }
 
     function viewByCourse(String $id) {
         global $accessLevel;
         global $conn;
-        $stmt = $conn->prepare('SELECT * FROM classes WHERE id = ?');
-        $stmt->bind_param('s', $id);
+        $stmt = $conn->prepare('SELECT classes.teacher AS teacher, teachers.name AS name, teachers.department AS department, departments.name AS departmentName FROM classes JOIN teachers ON classes.teacher = teachers.id JOIN departments ON teachers.department = departments.id WHERE classes.id = ?');
+        if (!$stmt) {
+            die("Prepare failed: " . $conn->error);
+        }
+        $stmt->bind_param('s', $id); #selects name and department of teacher in $row
+        
         $stmt->execute();
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
 
-        $stmt1 = $conn->prepare('SELECT student, grade FROM enrollments WHERE class = ?');
+        $stmt1 = $conn->prepare('SELECT students.name AS name, students.id AS student, enrollments.grade AS grade FROM enrollments JOIN students ON enrollments.student = students.id WHERE enrollments.class = ?');
+        if (!$stmt1) {
+            die("Prepare failed: " . $conn->error);
+        }
         $stmt1->bind_param('s', $id);
         $stmt1->execute();
         $result1 = $stmt1->get_result();
         $row1 = $result1->fetch_all(MYSQLI_ASSOC);
 
         foreach ($row1 as $key => $enrollment) {
-            $stmt2 = $conn->prepare('SELECT major from students where id=?');
+            $stmt2 = $conn->prepare('SELECT students.major, majors.department AS department FROM students JOIN majors ON students.major = majors.id WHERE students.id = ?');
+            if (!$stmt2) {
+            die("Prepare failed: " . $conn->error);
+        }
             $stmt2->bind_param('s', $enrollment['student']);
             $stmt2->execute();
             $result2 = $stmt2->get_result();
             $row2 = $result2->fetch_assoc();
 
-            $stmt3 = $conn->prepare('SELECT department from majors where id=?');
-            $stmt3->bind_param('s', $row2['major']);
-            $stmt3->execute();
-            $result3 = $stmt3->get_result();
-            $row3 = $result3->fetch_assoc();
-
-            if ($row3['department'] != 'ADVISOR DEPARTMENT' || $accessLevel < 'FIGURE OUT LATER') { #applies context to by course queries
+            if ($row2['department'] != 'ADVISOR DEPARTMENT' || $accessLevel < 'FIGURE OUT LATER') { #applies context to by course queries
                 $enrollment['grade'] = '*****'; #advisor from one department should not be able to view grades of a student not in his department
                 $row1[$key] = $enrollment;
             }
         }
 
 
-        print("Teacher: {$row['teacher']} \n" .
-                "Department: {$row['department']} \n" .
+        print("Teacher: {$row['name']} <br>" .
+                "Department: {$row['departmentName']} <br>" .
                 "Students: ");
         foreach ($row1 as $enrollment) {
-            echo("{$enrollment['name']}, {$enrollment['grade']}");
+            echo("{$enrollment['name']}, {$enrollment['grade']} <br>");
         }
     }
 
@@ -117,8 +120,8 @@
         $result1 = $stmt1->get_result();
         $row1 = $result1->fetch_assoc();
 
-        print("Name: {$row['name']} \n" .
-            "Department: {$row['department']}");
+        print("Name: {$row['name']} <br>" .
+            "Department: {$row['department']} <br>");
         
         foreach ($row1 as $course) { #lists each course the instructor teaches
             viewByCourse($course);
