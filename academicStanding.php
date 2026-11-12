@@ -13,7 +13,7 @@
     function academicStanding(String $id) {
         global $accessLevel;
         global $conn;
-        $accessLevel = $_SESSION['accessLevel'];
+        global $department;
         
         echo("starting");
         $result = createQuery('SELECT enrollments.grade as grade, students.name as name FROM enrollments JOIN students on enrollments.student = students.id WHERE enrollments.student=?', $id, $conn);
@@ -61,7 +61,7 @@
         
         
         
-        $result1 = createQuery('SELECT classes.name AS name, enrollments.grade as grade FROM enrollments JOIN classes ON enrollments.class = classes.id WHERE enrollments.student = ?', $id, $conn);
+        $result1 = createQuery('SELECT classes.id AS class, classes.name AS name, enrollments.grade as grade FROM enrollments JOIN classes ON enrollments.class = classes.id WHERE enrollments.student = ?', $id, $conn);
         $row2 = $result1->fetch_all(MYSQLI_ASSOC); #reused list of classes code here
         echo("Found student classes <br>");
         
@@ -72,6 +72,18 @@
                 $row2[$key] = $class;
             }
         }
+
+        if ($accessLevel == 1) { #hides grades in classes not in advisors department
+            foreach ($row2 as $key => $class) {
+                $result2 = createQuery('SELECT teachers.department AS department FROM classes JOIN teachers ON classes.teacher = teachers.id WHERE classes.id = ?', $row2[$key]['class'], $conn);
+                $row3 = $result2->fetch_assoc();
+                if ($row3['department'] != $department) {
+                    $class['grade'] = '*****';
+                    $row2[$key] = $class;
+                }
+            }
+        }
+
 
         echo("Name: {$row[0]['name']} <br>");
 
