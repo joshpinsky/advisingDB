@@ -78,6 +78,9 @@
             exit('Error: empty field!');
         // Search by Student, Course, Instructor, Department, or Major
         if ($queryType === 'Student') {
+            if($accessLevel < 1) {
+                exit('Access level too low.');
+            }
             $result = createQuery('SELECT AVG(grade) FROM enrollments WHERE student = ?', $_POST['id'], $conn);
             if ($row = $result->fetch_assoc()) {
                 echo 'Average grade for student ID ' . $_POST['id'] . ': ' . $row['AVG(grade)'];
@@ -157,6 +160,9 @@
     if ($action === 'Major Completion') {
 
         if ($queryType === 'Student') {
+            if($accessLevel < 1) {
+                exit('Access level too low.');
+            }
             //Step 1: Find student's major
             $result = createQuery('SELECT major FROM students WHERE id = ?', $id, $conn);
 

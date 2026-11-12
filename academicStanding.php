@@ -13,6 +13,7 @@
     function academicStanding(String $id) {
         global $accessLevel;
         global $conn;
+        $accessLevel = $_SESSION['accessLevel'];
         
         echo("starting");
         $result = createQuery('SELECT enrollments.grade as grade, students.name as name FROM enrollments JOIN students on enrollments.student = students.id WHERE enrollments.student=?', $id, $conn);
