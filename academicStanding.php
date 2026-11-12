@@ -15,7 +15,6 @@
         global $conn;
         global $department;
         
-        echo("starting");
         $result = createQuery('SELECT enrollments.grade as grade, students.name as name FROM enrollments JOIN students on enrollments.student = students.id WHERE enrollments.student=?', $id, $conn);
         $row = $result->fetch_all(MYSQLI_ASSOC);
         if (empty($row)) {
@@ -63,7 +62,6 @@
         
         $result1 = createQuery('SELECT classes.id AS class, classes.name AS name, enrollments.grade as grade FROM enrollments JOIN classes ON enrollments.class = classes.id WHERE enrollments.student = ?', $id, $conn);
         $row2 = $result1->fetch_all(MYSQLI_ASSOC); #reused list of classes code here
-        echo("Found student classes <br>");
         
 
         if ($accessLevel == 0) { #masks grade info from lower level advisors
@@ -95,6 +93,7 @@
         else
             echo("Student is in good academic standing <br>");
 
+        echo("<br>Current Enrollments:<br>");
         foreach ($row2 as $class) {
             echo("{$class['name']}, {$class['grade']} <br>");
         }

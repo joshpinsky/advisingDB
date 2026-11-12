@@ -72,8 +72,8 @@
 
     function viewByCourse(String $id) {
         global $accessLevel;
-        global $department
         global $conn;
+        global $department;
         $stmt = $conn->prepare('SELECT classes.teacher AS teacher, teachers.name AS name, teachers.department AS department, departments.name AS departmentName FROM classes JOIN teachers ON classes.teacher = teachers.id JOIN departments ON teachers.department = departments.id WHERE classes.id = ?');
         if (!$stmt) {
             die("Prepare failed: " . $conn->error);
@@ -103,7 +103,7 @@
             $result2 = $stmt2->get_result();
             $row2 = $result2->fetch_assoc();
 
-            if ($row2['department'] != $department || $accessLevel === 0) { #applies context to by course queries
+            if (($accessLevel == 1 && $row2['department'] != $department) || $accessLevel == 0) { #applies context to by course queries
                 $enrollment['grade'] = '*****'; #advisor from one department should not be able to view grades of a student not in his department
                 $row1[$key] = $enrollment;
             }
@@ -112,10 +112,11 @@
 
         print("Teacher: {$row['name']} <br>" .
                 "Department: {$row['departmentName']} <br>" .
-                "Students: ");
+                "Students:<br> ");
         foreach ($row1 as $enrollment) {
             echo("{$enrollment['name']}, {$enrollment['grade']} <br>");
         }
+        echo ("<br>");
     }
 
     function viewByInstructor(String $id) {
@@ -127,17 +128,22 @@
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
 
-        $stmt1 = $conn->prepare('SELECT id FROM classes WHERE teacher = ?');
+        $stmt1 = $conn->prepare('SELECT id, name FROM classes WHERE teacher = ?');
         $stmt1->bind_param('s', $id);
         $stmt1->execute();
         $result1 = $stmt1->get_result();
-        $row1 = $result1->fetch_assoc();
+        $row1 = $result1->fetch_all(MYSQLI_ASSOC);
+
 
         print("Name: {$row['name']} <br>" .
             "Department: {$row['department']} <br>");
-        
+
+        echo("<br>Instructor Courses:<br><br>");
+
         foreach ($row1 as $course) { #lists each course the instructor teaches
-            viewByCourse($course);
+
+            echo("{$course['name']}<br>");
+            viewByCourse($course['id']);
         }
     }
     ?>
