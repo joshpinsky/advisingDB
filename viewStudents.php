@@ -16,6 +16,12 @@
         $stmt = $conn->prepare('SELECT majors.name AS major, students.name AS student FROM students JOIN majors ON students.major = majors.id WHERE students.id = ?'); #pulls student major
         $stmt->bind_param('s', $id);
         $stmt->execute();
+        if (!$stmt) {
+            die("Prepare failed: " . $conn->error);
+        }
+        if (!$stmt->execute()) {
+            die("Execute failed: " . $conn->error);
+        }
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
         if (!$row) {
@@ -24,9 +30,15 @@
         }
         echo('Found student name and major');
 
-        $stmt1 = $conn->prepare('SELECT classes.name AS name, enrollments.grade as grade FROM enrollments JOIN classes ON enrollments.class = classes.id WHERE student = ?'); #pulls all of the students classes
+        $stmt1 = $conn->prepare('SELECT classes.name AS name, enrollments.grade as grade FROM enrollments JOIN classes ON enrollments.class = classes.id WHERE enrollments.student = ?'); #pulls all of the students classes
         $stmt1->bind_param('s', $id);
         $stmt1->execute();
+        if (!$stmt1) {
+            die("Prepare failed: " . $conn->error);
+        }
+        if (!$stmt1->execute()) {
+            die("Execute failed: " . $conn->error);
+        }
         $result1 = $stmt1->get_result();
         $row1 = $result1->fetch_all(MYSQLI_ASSOC);
         echo('Found student classes');
